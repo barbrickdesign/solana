@@ -1,0 +1,105 @@
+name: AI Solana Transaction Workflow
+
+# This workflow allows AI systems to trigger Solana transactions
+# via GitHub Actions using workflow_dispatch or repository_dispatch
+
+on:
+  # Manual trigger from GitHub UI
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'AI Transaction Prompt'
+        required: true
+        type: string
+      network:
+        description: 'Network (devnet/testnet/mainnet)'
+        required: false
+        default: 'devnet'
+        type: choice
+        options:
+          - devnet
+          - testnet
+          - mainnet
+  
+  # Trigger via GitHub API (for AI systems)
+  repository_dispatch:
+    types: [ai-transaction]
+
+jobs:
+  execute-transaction:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Process AI Transaction
+        id: transaction
+        run: |
+          cd ai-transaction-system/scripts
+          
+          # Get prompt from either workflow_dispatch or repository_dispatch
+          if [ -n "${{ github.event.inputs.prompt }}" ]; then
+            PROMPT="${{ github.event.inputs.prompt }}"
+            NETWORK="${{ github.event.inputs.network }}"
+          else
+            PROMPT="${{ github.event.client_payload.prompt }}"
+            NETWORK="${{ github.event.client_payload.network || 'devnet' }}"
+          fi
+          
+          echo "Processing prompt: $PROMPT"
+          echo "Network: $NETWORK"
+          
+          # Execute AI prompt handler
+          RESULT=$(python3 ai_prompt_handler.py "$PROMPT" --network "$NETWORK")
+          echo "Result: $RESULT"
+          
+          # Save result for next steps
+          echo "$RESULT" > /tmp/transaction_result.json
+          echo "result=$RESULT" >> $GITHUB_OUTPUT
+      
+      - name: Generate Income Report
+        run: |
+          cd ai-transaction-system/scripts
+          python3 passive_income_generator.py report
+      
+      - name: Comment on Issue (if triggered from issue)
+        if: github.event_name == 'repository_dispatch' && github.event.client_payload.issue_number
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const result = ${{ steps.transaction.outputs.result }};
+            const comment = `## AI Transaction Result\n\n\`\`\`json\n${JSON.stringify(result, null, 2)}\n\`\`\`\n\n**Dev Vault**: 5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr`;
+            
+            github.rest.issues.createComment({
+              issue_number: ${{ github.event.client_payload.issue_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+      
+      - name: Upload Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: transaction-results
+          path: /tmp/transaction_result.json
+          retention-days: 7
+
+# Example API call to trigger this workflow:
+# 
+# curl -X POST \
+#   -H "Accept: application/vnd.github+json" \
+#   -H "Authorization: Bearer YOUR_TOKEN" \
+#   https://api.github.com/repos/barbrickdesign/solana/dispatches \
+#   -d '{
+#     "event_type": "ai-transaction",
+#     "client_payload": {
+#       "prompt": "Transfer 0.5 SOL from A to B",
+#       "network": "devnet"
+#     }
+#   }'
