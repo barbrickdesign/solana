@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
-# Fetches the latest SPL programs and produces the solana-genesis command-line
-# arguments needed to install them
+# Fetch SPL (Solana Program Library) programs for genesis initialization
+# Downloads the latest SPL program binaries and generates genesis arguments
+# Outputs: spl-genesis-args.sh with command-line arguments for solana-genesis
 #
 
 set -e

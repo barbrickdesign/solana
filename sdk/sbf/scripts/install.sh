@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Install Solana SBF (Solana Berkeley Packet Filter) toolchain dependencies
+# Downloads and installs the required LLVM toolchain and Rust SBF target
+#
+set -e
 
 mkdir -p "$(dirname "$0")"/../dependencies
 cd "$(dirname "$0")"/../dependencies

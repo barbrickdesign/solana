@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# Common CI configuration for benchmark tests
+# Sets up environment for running performance benchmarks
+#
 
 here="$(dirname "$0")"
 

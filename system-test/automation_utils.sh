@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
-
-# | source | this file
+#
+# System test automation utilities
+# Common functions for collecting logs, analyzing network performance, and managing test execution
+#
+# |source| this file
 # shellcheck disable=SC1090
 # shellcheck disable=SC1091
 # shellcheck disable=SC2034

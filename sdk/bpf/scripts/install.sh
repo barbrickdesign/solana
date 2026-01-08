@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+# Install Solana BPF (legacy Berkeley Packet Filter) toolchain dependencies
+# Downloads and installs the required LLVM toolchain and Rust BPF target
+# Note: BPF is deprecated, use SBF instead for new projects
+#
+set -e
 
 mkdir -p "$(dirname "$0")"/../dependencies
 cd "$(dirname "$0")"/../dependencies

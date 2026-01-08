@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# Setup script for multinode demo environment
+# Creates genesis ledger and initializes bootstrap validator keypairs
+#
 
 here=$(dirname "$0")
 # shellcheck source=multinode-demo/common.sh

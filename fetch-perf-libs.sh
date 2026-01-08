@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#
+# Fetch Solana performance libraries (CUDA/GPU acceleration)
+# Downloads pre-built performance libraries for Linux x86_64 systems
+# These libraries provide GPU acceleration for signature verification
+# Version: v0.19.3-1
+#
 
 PERF_LIBS_VERSION=v0.19.3
 VERSION=$PERF_LIBS_VERSION-1

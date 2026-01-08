@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# Shared functions for CI test result management
+# Provides utilities for uploading test results and error handling
+#
 
 need_to_upload_test_result() {
   local branches=(

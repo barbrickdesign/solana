@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 #
-# Easily run the ABI tests for the entire repo or a subset
+# Run ABI (Application Binary Interface) tests for the repository
+# Executes ABI compatibility tests to ensure binary interfaces remain stable
+#
+# Usage:
+#   $0  - Run all ABI tests in the repository
 #
 
 here=$(dirname "$0")
