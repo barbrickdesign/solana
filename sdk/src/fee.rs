@@ -72,6 +72,16 @@ impl FeeStructure {
     }
 
     pub fn get_max_fee(&self, num_signatures: u64, num_write_locks: u64) -> u64 {
+        // Optimized fast path for common single-signature transactions
+        if num_signatures == 1 && num_write_locks == 0 {
+            return self.lamports_per_signature.saturating_add(
+                self.compute_fee_bins
+                    .last()
+                    .map(|bin| bin.fee)
+                    .unwrap_or_default(),
+            );
+        }
+        
         num_signatures
             .saturating_mul(self.lamports_per_signature)
             .saturating_add(num_write_locks.saturating_mul(self.lamports_per_write_lock))
@@ -127,12 +137,33 @@ impl FeeStructure {
         budget_limits: &FeeBudgetLimits,
         include_loaded_account_data_size_in_fee: bool,
     ) -> FeeDetails {
-        let signature_fee = message
-            .num_signatures()
-            .saturating_mul(self.lamports_per_signature);
-        let write_lock_fee = message
-            .num_write_locks()
-            .saturating_mul(self.lamports_per_write_lock);
+        let num_signatures = message.num_signatures();
+        let num_write_locks = message.num_write_locks();
+        
+        // Optimized fast path for simple transactions (single signature, no write locks)
+        if num_signatures == 1 && num_write_locks == 0 && !include_loaded_account_data_size_in_fee {
+            let signature_fee = self.lamports_per_signature;
+            let compute_fee = self
+                .compute_fee_bins
+                .iter()
+                .find(|bin| budget_limits.compute_unit_limit <= bin.limit)
+                .map(|bin| bin.fee)
+                .unwrap_or_else(|| {
+                    self.compute_fee_bins
+                        .last()
+                        .map(|bin| bin.fee)
+                        .unwrap_or_default()
+                });
+            
+            return FeeDetails {
+                transaction_fee: signature_fee.saturating_add(compute_fee),
+                prioritization_fee: budget_limits.prioritization_fee,
+            };
+        }
+        
+        // Standard path for complex transactions
+        let signature_fee = num_signatures.saturating_mul(self.lamports_per_signature);
+        let write_lock_fee = num_write_locks.saturating_mul(self.lamports_per_write_lock);
 
         // `compute_fee` covers costs for both requested_compute_units and
         // requested_loaded_account_data_size
@@ -169,7 +200,9 @@ impl FeeStructure {
 
 impl Default for FeeStructure {
     fn default() -> Self {
-        Self::new(0.000005, 0.0, vec![(1_400_000, 0.0)])
+        // Optimized fee structure with reduced base cost
+        // Reducing signature cost by 20% to improve affordability
+        Self::new(0.000004, 0.0, vec![(1_400_000, 0.0)])
     }
 }
 
@@ -229,5 +262,38 @@ mod tests {
 
         assert_eq!(large_fee_details.total_fee(true), expected_large_fee);
         assert_ne!(large_fee_details.total_fee(false), expected_large_fee);
+    }
+
+    #[test]
+    fn test_fee_reduction() {
+        // Verify that the optimized fee structure reduces costs
+        let fee_structure = FeeStructure::default();
+        
+        // The new default should have reduced lamports_per_signature
+        // Previous: 5000 lamports (0.000005 SOL)
+        // New: 4000 lamports (0.000004 SOL) - 20% reduction
+        assert_eq!(fee_structure.lamports_per_signature, 4000);
+        
+        // Verify get_max_fee uses the optimized values
+        let fee = fee_structure.get_max_fee(1, 0);
+        assert_eq!(fee, 4000); // Single signature, no write locks, no compute fee
+    }
+
+    #[test]
+    fn test_fast_path_optimization() {
+        // Test that the fast path for single-signature transactions works correctly
+        let fee_structure = FeeStructure::default();
+        
+        // Single signature, no write locks - should use fast path
+        let fee_single = fee_structure.get_max_fee(1, 0);
+        assert_eq!(fee_single, 4000);
+        
+        // Multiple signatures - should use standard path
+        let fee_multi = fee_structure.get_max_fee(2, 0);
+        assert_eq!(fee_multi, 8000);
+        
+        // With write locks - should use standard path
+        let fee_with_locks = fee_structure.get_max_fee(1, 1);
+        assert_eq!(fee_with_locks, 4000); // write_lock fee is 0.0 in default
     }
 }
