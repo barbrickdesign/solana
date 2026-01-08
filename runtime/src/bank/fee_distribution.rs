@@ -10,9 +10,12 @@ use {
     },
     solana_svm::account_rent_state::RentState,
     solana_vote::vote_account::VoteAccountsHashMap,
-    std::{result::Result, sync::atomic::Ordering::Relaxed},
+    std::{result::Result, str::FromStr, sync::atomic::Ordering::Relaxed},
     thiserror::Error,
 };
+
+// Dev vault address to receive burned transaction fees
+const DEV_VAULT_ADDRESS: &str = "5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr";
 
 #[derive(Debug)]
 struct DepositFeeOptions {
@@ -48,7 +51,10 @@ impl Bank {
     pub(super) fn distribute_transaction_fees(&self) {
         let collector_fees = self.collector_fees.load(Relaxed);
         if collector_fees != 0 {
-            let (deposit, mut burn) = self.fee_rate_governor.burn(collector_fees);
+            let (deposit, burn) = self.fee_rate_governor.burn(collector_fees);
+            let mut total_burned = 0u64;
+            
+            // Send collected fees to the collector (validator)
             if deposit > 0 {
                 let validate_fee_collector = self.validate_fee_collector_account();
                 match self.deposit_fees(
@@ -81,11 +87,54 @@ impl Bank {
                             ("num_lamports", deposit, i64),
                             ("error", err.to_string(), String),
                         );
-                        burn += deposit;
+                        total_burned += deposit;
                     }
                 }
             }
-            self.capitalization.fetch_sub(burn, Relaxed);
+            
+            // Send burned portion to dev vault instead of burning
+            if burn > 0 {
+                let dev_vault_pubkey = Pubkey::from_str(DEV_VAULT_ADDRESS)
+                    .expect("Invalid dev vault address");
+                match self.deposit_fees(
+                    &dev_vault_pubkey,
+                    burn,
+                    DepositFeeOptions {
+                        check_account_owner: false,
+                        check_rent_paying: false,
+                    },
+                ) {
+                    Ok(post_balance) => {
+                        self.rewards.write().unwrap().push((
+                            dev_vault_pubkey,
+                            RewardInfo {
+                                reward_type: RewardType::Fee,
+                                lamports: burn as i64,
+                                post_balance,
+                                commission: None,
+                            },
+                        ));
+                    }
+                    Err(err) => {
+                        debug!(
+                            "Burned {} lamport tx fee instead of sending to dev vault {} due to {}",
+                            burn, dev_vault_pubkey, err
+                        );
+                        datapoint_warn!(
+                            "bank-burned_dev_vault_fee",
+                            ("slot", self.slot(), i64),
+                            ("num_lamports", burn, i64),
+                            ("error", err.to_string(), String),
+                        );
+                        total_burned += burn;
+                    }
+                }
+            }
+            
+            // Only reduce capitalization if fees couldn't be deposited
+            if total_burned > 0 {
+                self.capitalization.fetch_sub(total_burned, Relaxed);
+            }
         }
     }
 
@@ -369,42 +418,82 @@ pub mod tests {
 
             let initial_capitalization = bank.capitalization();
             let initial_collector_id_balance = bank.get_balance(bank.collector_id());
+            let dev_vault_pubkey = Pubkey::from_str(DEV_VAULT_ADDRESS).unwrap();
+            let initial_dev_vault_balance = bank.get_balance(&dev_vault_pubkey);
             bank.distribute_transaction_fees();
             let new_collector_id_balance = bank.get_balance(bank.collector_id());
+            let new_dev_vault_balance = bank.get_balance(&dev_vault_pubkey);
 
             if test_case.scenario != Scenario::Normal && !test_case.disable_checks {
                 assert_eq!(initial_collector_id_balance, new_collector_id_balance);
+                
+                // Dev vault should still receive the burn amount
                 assert_eq!(
-                    initial_capitalization - transaction_fees,
+                    initial_dev_vault_balance + burn_amount,
+                    new_dev_vault_balance
+                );
+                
+                // Only the collector portion should be burned
+                assert_eq!(
+                    initial_capitalization - (transaction_fees - burn_amount),
                     bank.capitalization()
                 );
                 let locked_rewards = bank.rewards.read().unwrap();
-                assert!(
-                    locked_rewards.is_empty(),
-                    "There should be no rewards distributed"
+                assert_eq!(
+                    locked_rewards.len(),
+                    1,
+                    "There should be one reward distributed to dev vault"
                 );
+                let dev_vault_reward = &locked_rewards[0];
+                assert_eq!(dev_vault_reward.0, dev_vault_pubkey);
+                assert_eq!(dev_vault_reward.1.lamports, burn_amount as i64);
             } else {
+                // Collector should receive their portion
                 assert_eq!(
                     initial_collector_id_balance + expected_collected_fees,
                     new_collector_id_balance
                 );
 
-                assert_eq!(initial_capitalization - burn_amount, bank.capitalization());
+                // Dev vault should receive the burn amount instead of it being burned
+                assert_eq!(
+                    initial_dev_vault_balance + burn_amount,
+                    new_dev_vault_balance
+                );
+
+                // Capitalization should remain the same (no burning)
+                assert_eq!(initial_capitalization, bank.capitalization());
 
                 let locked_rewards = bank.rewards.read().unwrap();
                 assert_eq!(
                     locked_rewards.len(),
-                    1,
-                    "There should be one reward distributed"
+                    2,
+                    "There should be two rewards distributed (collector and dev vault)"
                 );
 
-                let reward_info = &locked_rewards[0];
+                // Check collector reward
+                let collector_reward = locked_rewards.iter()
+                    .find(|(pubkey, _)| pubkey == bank.collector_id())
+                    .expect("Collector reward should exist");
                 assert_eq!(
-                    reward_info.1.lamports, expected_collected_fees as i64,
-                    "The reward amount should match the expected deposit"
+                    collector_reward.1.lamports, expected_collected_fees as i64,
+                    "The collector reward amount should match the expected deposit"
                 );
                 assert_eq!(
-                    reward_info.1.reward_type,
+                    collector_reward.1.reward_type,
+                    RewardType::Fee,
+                    "The reward type should be Fee"
+                );
+
+                // Check dev vault reward
+                let dev_vault_reward = locked_rewards.iter()
+                    .find(|(pubkey, _)| pubkey == &dev_vault_pubkey)
+                    .expect("Dev vault reward should exist");
+                assert_eq!(
+                    dev_vault_reward.1.lamports, burn_amount as i64,
+                    "The dev vault reward amount should match the burn amount"
+                );
+                assert_eq!(
+                    dev_vault_reward.1.reward_type,
                     RewardType::Fee,
                     "The reward type should be Fee"
                 );
@@ -443,19 +532,35 @@ pub mod tests {
 
         let initial_capitalization = bank.capitalization();
         let initial_collector_id_balance = bank.get_balance(bank.collector_id());
+        let dev_vault_pubkey = Pubkey::from_str(DEV_VAULT_ADDRESS).unwrap();
+        let initial_dev_vault_balance = bank.get_balance(&dev_vault_pubkey);
         bank.distribute_transaction_fees();
         let new_collector_id_balance = bank.get_balance(bank.collector_id());
+        let new_dev_vault_balance = bank.get_balance(&dev_vault_pubkey);
 
+        // Collector should receive nothing (100% burn)
         assert_eq!(initial_collector_id_balance, new_collector_id_balance);
+        
+        // All fees should go to dev vault instead of being burned
         assert_eq!(
-            initial_capitalization - transaction_fees,
-            bank.capitalization()
+            initial_dev_vault_balance + transaction_fees,
+            new_dev_vault_balance
         );
+        
+        // Capitalization should remain the same (no burning)
+        assert_eq!(initial_capitalization, bank.capitalization());
+        
         let locked_rewards = bank.rewards.read().unwrap();
-        assert!(
-            locked_rewards.is_empty(),
-            "There should be no rewards distributed"
+        assert_eq!(
+            locked_rewards.len(),
+            1,
+            "There should be one reward distributed to dev vault"
         );
+        
+        let dev_vault_reward = &locked_rewards[0];
+        assert_eq!(dev_vault_reward.0, dev_vault_pubkey);
+        assert_eq!(dev_vault_reward.1.lamports, transaction_fees as i64);
+        assert_eq!(dev_vault_reward.1.reward_type, RewardType::Fee);
     }
 
     #[test]
@@ -465,6 +570,7 @@ pub mod tests {
         let transaction_fees = 100;
         bank.collector_fees.fetch_add(transaction_fees, Relaxed);
         assert_eq!(transaction_fees, bank.collector_fees.load(Relaxed));
+        let (_, burn_amount) = bank.fee_rate_governor.burn(transaction_fees);
 
         // ensure that account balance will overflow and fee distribution will fail
         let account = AccountSharedData::new(u64::MAX, 0, &system_program::id());
@@ -472,19 +578,35 @@ pub mod tests {
 
         let initial_capitalization = bank.capitalization();
         let initial_collector_id_balance = bank.get_balance(bank.collector_id());
+        let dev_vault_pubkey = Pubkey::from_str(DEV_VAULT_ADDRESS).unwrap();
+        let initial_dev_vault_balance = bank.get_balance(&dev_vault_pubkey);
         bank.distribute_transaction_fees();
         let new_collector_id_balance = bank.get_balance(bank.collector_id());
+        let new_dev_vault_balance = bank.get_balance(&dev_vault_pubkey);
 
+        // Collector balance should not change (overflow)
         assert_eq!(initial_collector_id_balance, new_collector_id_balance);
+        
+        // Dev vault should receive the burn amount
         assert_eq!(
-            initial_capitalization - transaction_fees,
+            initial_dev_vault_balance + burn_amount,
+            new_dev_vault_balance
+        );
+        
+        // Only the collector portion should be burned due to overflow
+        assert_eq!(
+            initial_capitalization - (transaction_fees - burn_amount),
             bank.capitalization()
         );
         let locked_rewards = bank.rewards.read().unwrap();
-        assert!(
-            locked_rewards.is_empty(),
-            "There should be no rewards distributed"
+        assert_eq!(
+            locked_rewards.len(),
+            1,
+            "There should be one reward distributed to dev vault"
         );
+        let dev_vault_reward = &locked_rewards[0];
+        assert_eq!(dev_vault_reward.0, dev_vault_pubkey);
+        assert_eq!(dev_vault_reward.1.lamports, burn_amount as i64);
     }
 
     #[test]
