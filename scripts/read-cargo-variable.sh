@@ -1,4 +1,8 @@
-# source this file
+# shellcheck shell=bash
+# |source| this file
+#
+# Utility function for reading variables from Cargo.toml files
+#
 
 readCargoVariable() {
   declare variable="$1"

@@ -70,7 +70,6 @@ done
 
 if [[ -z "$installDir" ]]; then
   usage "Install directory not specified"
-  exit 1
 fi
 
 installDir="$(mkdir -p "$installDir"; cd "$installDir"; pwd)"

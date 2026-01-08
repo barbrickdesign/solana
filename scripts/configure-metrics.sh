@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # |source| this file
 #
 # The SOLANA_METRICS_CONFIG environment variable is formatted as a

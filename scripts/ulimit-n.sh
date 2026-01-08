@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # |source| this file
 #
 # Adjust the maximum number of files that may be opened to as large as possible.

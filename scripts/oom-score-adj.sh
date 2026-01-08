@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # |source| this file
 #
 # Adjusts the OOM score for the specified process.  Linux only

@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # |source| this file
 #
 # Common utilities shared by other scripts in this directory
@@ -100,7 +101,7 @@ replace_arg() {
   for arg in "${args[@]}"; do
     index=$((index + 1))
     if [[ $arg = "$name" ]]; then
-      args[$index]="$value"
+      args[index]="$value"
     fi
   done
 }
