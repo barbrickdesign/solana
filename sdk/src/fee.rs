@@ -263,4 +263,37 @@ mod tests {
         assert_eq!(large_fee_details.total_fee(true), expected_large_fee);
         assert_ne!(large_fee_details.total_fee(false), expected_large_fee);
     }
+
+    #[test]
+    fn test_fee_reduction() {
+        // Verify that the optimized fee structure reduces costs
+        let fee_structure = FeeStructure::default();
+        
+        // The new default should have reduced lamports_per_signature
+        // Previous: 5000 lamports (0.000005 SOL)
+        // New: 4000 lamports (0.000004 SOL) - 20% reduction
+        assert_eq!(fee_structure.lamports_per_signature, 4000);
+        
+        // Verify get_max_fee uses the optimized values
+        let fee = fee_structure.get_max_fee(1, 0);
+        assert_eq!(fee, 4000); // Single signature, no write locks, no compute fee
+    }
+
+    #[test]
+    fn test_fast_path_optimization() {
+        // Test that the fast path for single-signature transactions works correctly
+        let fee_structure = FeeStructure::default();
+        
+        // Single signature, no write locks - should use fast path
+        let fee_single = fee_structure.get_max_fee(1, 0);
+        assert_eq!(fee_single, 4000);
+        
+        // Multiple signatures - should use standard path
+        let fee_multi = fee_structure.get_max_fee(2, 0);
+        assert_eq!(fee_multi, 8000);
+        
+        // With write locks - should use standard path
+        let fee_with_locks = fee_structure.get_max_fee(1, 1);
+        assert_eq!(fee_with_locks, 4000); // write_lock fee is 0.0 in default
+    }
 }
