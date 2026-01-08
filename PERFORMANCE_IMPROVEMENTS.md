@@ -283,7 +283,7 @@ Examples of enhanced scripts include:
 
 A comprehensive system that enables AI to perform Solana blockchain transactions through natural language prompts, with all transactions generating passive income for the development vault.
 
-**Dev Vault Wallet:** `5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr`
+**Dev Vault Wallet:** `5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr` *(This is the actual dev vault address for the AI transaction system)*
 
 ### Key Features
 

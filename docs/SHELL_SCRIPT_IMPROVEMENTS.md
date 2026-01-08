@@ -6,6 +6,8 @@
 
 This document details the comprehensive quality improvements made to 30+ shell scripts across the Solana codebase, including enhanced error handling, improved documentation, and full ShellCheck compliance.
 
+**Note:** The actual shell script modifications were implemented in [PR #1](https://github.com/barbrickdesign/solana/pull/1). This document provides comprehensive documentation of those changes.
+
 ## Table of Contents
 
 1. [Summary of Changes](#summary-of-changes)

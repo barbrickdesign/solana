@@ -316,7 +316,9 @@ Efficiency Gain: 12% less memory bandwidth required
 
 #### Transaction Type Distribution
 
-Based on analysis of 1 million mainnet transactions:
+**Methodology:** Based on theoretical analysis and estimates derived from Solana network statistics. These projections are based on typical transaction patterns observed on Solana mainnet and industry standard distributions.
+
+**Note:** The following represents estimated transaction distribution patterns:
 
 ```
 Transaction Type Distribution
