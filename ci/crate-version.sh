@@ -2,6 +2,8 @@
 #
 # Outputs the current crate version from a given Cargo.toml
 #
+# Usage: $0 path/to/Cargo.toml
+#
 set -e
 
 Cargo_toml=$1
@@ -22,5 +24,5 @@ while read -r name equals value _; do
   fi
 done < <(cat "$Cargo_toml")
 
-echo Unable to locate version in Cargo.toml 1>&2
+echo "Error: Unable to locate version in $Cargo_toml" 1>&2
 exit 1

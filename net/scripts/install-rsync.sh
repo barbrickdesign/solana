@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Rsync setup
+# Install rsync for remote file synchronization
+# Required for deployment and backup operations
 #
 set -ex
 

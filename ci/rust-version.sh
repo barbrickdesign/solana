@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+# |source| this file
 #
 # This file maintains the rust versions for use by CI.
 #

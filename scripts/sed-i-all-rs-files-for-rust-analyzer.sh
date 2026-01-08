@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+#
+# Temporarily modify Rust test/bench attributes for rust-analyzer
+# This script helps rust-analyzer's call hierarchy by escaping test/bench attributes
+#
+# Usage:
+#   $0 doit      - Escape test/bench attributes in all .rs files
+#   $0 undoit    - Restore original test/bench attributes
+#
+# Note: This is a workaround for rust-analyzer's noisy test call display in call hierarchies
+#
 
 set -e
 

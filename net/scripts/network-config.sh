@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# Configure network kernel parameters for optimal validator performance
+# - Increases socket buffer sizes for high-throughput network operations
+# - Increases memory mapped files limit for database operations
+#
 set -ex
 
 [[ $(uname) = Linux ]] || exit 1

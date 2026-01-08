@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Setup timezone
+# Configure system timezone to America/Los_Angeles (Pacific Time)
+# Ensures consistent timestamps across validator infrastructure
 #
 set -ex
 
