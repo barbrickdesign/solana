@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "devVaultWallet": "5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr",
+  "network": {
+    "mainnet": "https://api.mainnet-beta.solana.com",
+    "devnet": "https://api.devnet.solana.com",
+    "testnet": "https://api.testnet.solana.com",
+    "default": "devnet"
+  },
+  "feeStructure": {
+    "passiveIncomePercentage": 100,
+    "description": "100% of all fees and generated income go to dev vault"
+  },
+  "transactionDefaults": {
+    "maxRetries": 3,
+    "confirmationTimeout": 60000,
+    "skipPreflight": false
+  },
+  "security": {
+    "requireConfirmation": true,
+    "maxTransactionAmount": 1000,
+    "allowedOperations": [
+      "transfer",
+      "token_transfer",
+      "stake",
+      "create_token_account",
+      "query_balance"
+    ]
+  }
+}

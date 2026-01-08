@@ -1,0 +1,14 @@
+# Python dependencies for AI Transaction System
+
+# Core dependencies (for future full implementation)
+# Uncomment when ready for production deployment:
+# solana==0.30.0
+# base58==2.1.1
+
+# Current implementation uses only Python standard library
+# No additional dependencies required for simulation mode
+
+# Optional dependencies for production:
+# requests==2.31.0  # For REST API integration
+# flask==3.0.0      # For web server
+# pytest==7.4.0     # For testing

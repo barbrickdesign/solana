@@ -1,0 +1,22 @@
+{
+  "transactions": [
+    {
+      "type": "staking",
+      "amount": 10.0,
+      "wallet": "REQUIRED_WALLET",
+      "dev_vault": "5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr",
+      "status": "initiated",
+      "timestamp": "2026-01-08T11:22:15.452166"
+    }
+  ],
+  "total_income": 10.0,
+  "strategies": {
+    "staking": 0,
+    "token_fees": 0,
+    "lending": 0,
+    "other": 0
+  },
+  "last_updated": "2026-01-08T11:16:14.571Z",
+  "dev_vault": "5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr",
+  "description": "This file tracks all passive income generated through the AI transaction system. All proceeds go to the dev vault wallet."
+}
