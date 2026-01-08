@@ -7,6 +7,53 @@ See Agave, the Solana validator implementation from Anza: https://github.com/anz
 
 ---
 
+# BarbrickDesign Enhancements (2026)
+
+This fork contains performance and quality improvements contributed by BarbrickDesign:
+
+## Transaction Speed & Fee Optimizations
+
+**Reduced Transaction Costs by 20%**
+- Default transaction fee reduced from 10,000 to 8,000 lamports (0.000008 SOL)
+- FeeStructure signature cost optimized from 0.000005 to 0.000004 SOL
+- Fast-path optimization for simple single-signature transactions
+- Improved computational efficiency in fee calculation
+
+**Performance Improvements**
+- Optimized fee calculation with reduced overhead for common transaction patterns
+- Fast-path processing for single-signature transactions without write locks
+- Enhanced compute fee determination with improved lookup efficiency
+- Comprehensive test coverage for fee optimizations
+
+## Shell Script Enhancements
+
+**Code Quality Improvements**
+- Enhanced 30+ shell scripts with improved documentation and error handling
+- Added proper shell directives to all sourced library files
+- Fixed shellcheck warnings (SC2004, SC2086, SC2148, SC2317)
+- Improved variable quoting to prevent word splitting
+- Added consistent error handling with `set -e` where appropriate
+
+**Documentation**
+- Enhanced usage messages and error reporting across utility scripts
+- Improved documentation headers for better maintainability
+- Consistent coding style throughout the codebase
+
+## In Development
+
+**AI-Integrated Transaction System** (PR #3)
+- Comprehensive system for AI-driven Solana transactions
+- GitHub-based data storage for AI accessibility
+- Passive income generation system
+- Dev vault wallet integration (5hSWosj58ki4A6hSfQrvteQU5QvyCWmhHn4AuqgaQzqr)
+
+For more details, see the pull requests:
+- [PR #1: Shell Script Enhancements](https://github.com/barbrickdesign/solana/pull/1)
+- [PR #2: Transaction Speed & Fee Optimizations](https://github.com/barbrickdesign/solana/pull/2)
+- [PR #3: AI Transaction System](https://github.com/barbrickdesign/solana/pull/3) (In Progress)
+
+---
+
 <p align="center">
   <a href="https://solana.com">
     <img alt="Solana" src="https://i.imgur.com/IKyzQ6T.png" width="250" />
