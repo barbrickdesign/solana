@@ -1,4 +1,8 @@
-# populate this on the stable branch
+# shellcheck shell=bash
+# |source| this file
+#
+# SPL Token CLI version configuration (populate this on the stable branch)
+#
 splTokenCliVersion=
 
 maybeSplTokenCliVersionArg=

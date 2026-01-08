@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+#
+# Install EarlyOOM - Early Out Of Memory daemon
+# EarlyOOM monitors memory usage and kills processes before system becomes unresponsive
+# This is critical for validator stability under memory pressure
+#
 set -ex
-#
-# Install EarlyOOM
-#
 
 [[ $(uname) = Linux ]] || exit 1
 [[ $USER = root ]] || exit 1

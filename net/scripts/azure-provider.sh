@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # |source| this file
 #
 # Utilities for working with Azure instances

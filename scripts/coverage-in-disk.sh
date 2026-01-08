@@ -53,7 +53,7 @@ echo "--- remove old coverage results"
 if [[ -d target/cov ]]; then
   find target/cov -type f -name '*.gcda' -delete
 fi
-rm -rf target/cov/$reportName
+rm -rf target/cov/"$reportName"
 mkdir -p target/cov
 
 # Mark the base time for a clean room dir
@@ -114,14 +114,14 @@ find target/cov -type f -name '*.gcda' -newer target/cov/before-test ! -newer ta
   )
 
   set -x
-  grcov "${grcov_args[@]}" -t html -o target/cov/$reportName
+  grcov "${grcov_args[@]}" -t html -o target/cov/"$reportName"
   grcov "${grcov_args[@]}" -t lcov -o target/cov/lcov.info
 
   cd target/cov
-  tar zcf report.tar.gz $reportName
+  tar zcf report.tar.gz "$reportName"
 )
 
-ls -l target/cov/$reportName/index.html
-ln -sfT $reportName target/cov/LATEST
+ls -l target/cov/"$reportName"/index.html
+ln -sfT "$reportName" target/cov/LATEST
 
 exit $test_status

@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+#
+# Execute cargo commands across all Cargo.lock files in the repository
+# This script finds all Cargo.lock files and runs the specified cargo command
+# in each directory containing one.
+#
+# Usage:
+#   $0 [--ignore-exit-code] [--] [cargo-args...] [-- cargo-command-args...]
+#
+# Options:
+#   --ignore-exit-code    Continue even if a cargo command fails
+#   --                    Separate lock file paths from cargo arguments
+#
 
 if ! command -v cargo &> /dev/null ; then
   >&2 echo "Failed to find cargo. Mac readlink doesn't support -f. Consider switching

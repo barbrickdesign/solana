@@ -71,7 +71,6 @@ while [[ -n $1 ]]; do
     else
       echo "Unknown argument: $1"
       usage
-      exit 1
     fi
   else
     positional_args+=("$1")

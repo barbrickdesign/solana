@@ -2,6 +2,7 @@
 #
 # Send a metrics datapoint
 #
+set -e
 
 point=$1
 if [[ -z $point ]]; then

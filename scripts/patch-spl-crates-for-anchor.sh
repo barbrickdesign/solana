@@ -1,3 +1,10 @@
+# shellcheck shell=bash
+# |source| this file
+#
+# Utility functions for patching SPL crate dependencies in Cargo.toml files for Anchor builds
+# This updates SPL package versions and patches them to use local paths
+#
+
 spl_memo_version=
 spl_token_version=
 spl_token_2022_version=

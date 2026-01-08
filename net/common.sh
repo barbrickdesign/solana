@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # |source| this file
 #
 # Common utilities shared by other scripts in this directory

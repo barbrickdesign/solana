@@ -1,4 +1,8 @@
-# source this file
+# shellcheck shell=bash
+# |source| this file
+#
+# Utility functions for patching Solana dependencies in Cargo.toml files
+#
 
 update_solana_dependencies() {
   declare project_root="$1"

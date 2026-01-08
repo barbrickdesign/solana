@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# Create and configure the 'solana' user account
+# Sets up the user with sudo privileges for validator operations
+#
 set -ex
 
 [[ $(uname) = Linux ]] || exit 1
