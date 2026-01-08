@@ -1,4 +1,5 @@
- # Ensure the current channel version is not equal ("greater") than
+# shellcheck shell=bash
+# Ensure the current channel version is not equal ("greater") than
 # the version of the latest tag
 if [[ -z $CI_TAG ]]; then
   echo "--- channel version check"

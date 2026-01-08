@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 display_help() {
   local bin
